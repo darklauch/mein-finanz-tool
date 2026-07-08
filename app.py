@@ -1,21 +1,32 @@
 import streamlit as st
 import pandas as pd
-import os
 
-st.title("Debug: Finanz-App")
+st.set_page_config(page_title="Mein Finanz-Dashboard", layout="wide")
+st.title("💰 Finanz-Cockpit")
 
-# Zeige an, welche Dateien GitHub im Ordner sieht
-st.write("Dateien im Ordner:", os.listdir('.'))
+# Hilfsfunktion zum Laden der Daten
+@st.cache_data
+def load_data():
+    haushalt = pd.read_csv("Masterplan.xlsx - Haushalt (Cash).csv")
+    finanz = pd.read_csv("Masterplan.xlsx - Finanzierung&Mietkalkulation.csv")
+    prognose = pd.read_csv("Masterplan.xlsx - (SOLL) Prognosekurve.csv")
+    return haushalt, finanz, prognose
 
-filename = "Masterplan.xlsx"
+haushalt, finanz, prognose = load_data()
 
-if filename in os.listdir('.'):
-    st.success(f"Gefunden! Lade {filename}...")
-    try:
-        # Wir laden das erste Blatt (Sheet) der Excel-Datei
-        df = pd.read_excel(filename)
-        st.dataframe(df.head())
-    except Exception as e:
-        st.error(f"Fehler beim Lesen der Excel-Datei: {e}")
-else:
-    st.error(f"Die Datei '{filename}' ist nicht im Hauptverzeichnis von GitHub!")
+# Tabs erstellen
+tab1, tab2, tab3 = st.tabs(["Übersicht", "Haushalt", "Prognose"])
+
+with tab1:
+    st.header("Aktueller Status")
+    # Hier ziehen wir Werte aus deinen CSVs
+    st.metric("Kontostand", "46.419 €") # Beispielwert aus deinem CSV-Snippet
+    st.dataframe(finanz.head(5))
+
+with tab2:
+    st.header("Haushalt & Cashflow")
+    st.dataframe(haushalt)
+
+with tab3:
+    st.header("Langfristige Entwicklung")
+    st.line_chart(prognose.select_dtypes(include=['number']))
